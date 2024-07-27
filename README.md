@@ -4,20 +4,20 @@
 
 ## Key Features:
 
-**Network Server:** Establishes a TCP server to handle client connections using Redis's RESP protocol.
-**Basic Commands:** Supports fundamental Redis commands like (SET, GET, HSET, HGET and DELETE) for basic key-value operations.
-**Persistence:** Implements the Append-Only File (AOF) persistence mechanism to ensure data durability.
+- **Network Server:** Establishes a TCP server to handle client connections using Redis's RESP protocol.
+- **Basic Commands:** Supports fundamental Redis commands like (SET, GET, HSET, HGET and DELETE) for basic key-value operations.
+- **Persistence:** Implements the Append-Only File (AOF) persistence mechanism to ensure data durability.
 
 ## Project Structure:
 
-**Sockets:** Handles network communication and client connections.
-RESP: Implements the Redis Serialization Protocol (RESP) for efficient data transfer.
-**AOF:** Manages the Append-Only File for data persistence.
-**Database:** Stores in-memory key-value data.
+- **Sockets:** Handles network communication and client connections.
+- **RESP:** Implements the Redis Serialization Protocol (RESP) for efficient data transfer.
+- **AOF:** Manages the Append-Only File for data persistence.
+- **Database:** Stores in-memory key-value data.
 
 ## Getting Started:
 
-just go the repo path and run to start the server:
+just go the repo path and run to build your executable file:
 ```bash
 $ go build maredis .
 ```
