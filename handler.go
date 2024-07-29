@@ -12,6 +12,8 @@ var Handlers = map[string]func([]Value) Value{
 	"HSET":    hset,
 	"HGET":    hget,
 	"HGETALL": hgetall,
+	"MULTI":   empty,
+	"COMMAND": empty,
 }
 
 func ping(args []Value) Value {
@@ -127,4 +129,8 @@ func hgetall(args []Value) Value {
 	}
 
 	return Value{typ: "array", array: values}
+}
+
+func empty(args []Value) Value {
+	return Value{typ: "string", str: ""}
 }

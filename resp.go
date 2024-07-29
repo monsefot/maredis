@@ -2,9 +2,11 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -71,8 +73,7 @@ func (resp *RESP) Read() (Value, error) {
 	case BULK:
 		return resp.readBulk()
 	default:
-		fmt.Printf("Unknown type: %v", string(_type))
-		return Value{}, nil
+		return Value{}, errors.New(fmt.Sprintln("Unknown type: ", string(_type)))
 	}
 }
 
@@ -189,6 +190,17 @@ func (v Value) getKey() string {
 	}
 
 	return v.array[1].bulk
+}
+
+func (v Value) splitCommandArgs() (string, []Value, error) {
+	if v.typ != "array" {
+		return "", nil, errors.New("expected a value of type 'array'")
+	}
+
+	command := strings.ToUpper(v.array[0].bulk)
+	args := v.array[1:]
+
+	return command, args, nil
 }
 
 type Writer struct {
