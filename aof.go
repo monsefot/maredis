@@ -91,7 +91,7 @@ func (aof *AOF) Read(callback func(value Value)) {
 		value, err := resp.Read()
 		if err != nil {
 			if err != io.EOF {
-				fmt.Println("[AOF_ERR] ", err)
+				fmt.Println("[ERROR][AOF] ", err)
 			}
 			return
 		}

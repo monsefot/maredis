@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"sync"
 )
 
@@ -44,7 +45,7 @@ func kset(args []Value) Value {
 
 func kget(args []Value) Value {
 	if len(args) != 1 {
-		return Value{typ: "error", str: "ERR wrong number of arguments for 'get' command"}
+		return Value{typ: "error", str: "wrong number of arguments for 'get' command"}
 	}
 
 	key := args[0].bulk
@@ -54,7 +55,7 @@ func kget(args []Value) Value {
 		return Value{typ: "string", str: "null"}
 	}
 
-	return Value{typ: "string", str: value}
+	return Value{typ: "string", str: fmt.Sprintf("\"%s\"", value)}
 
 }
 
