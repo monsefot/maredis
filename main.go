@@ -12,7 +12,4 @@ func main() {
 
 	server.LoadState()
 	server.AcceptIncommingRequests()
-	defer server.connection.Close()
-
-	server.ProcessRequest()
 }

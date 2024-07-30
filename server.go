@@ -10,12 +10,9 @@ import (
 const PORT = 6379
 
 type Server struct {
-	listener   net.Listener
-	connection net.Conn
-	aof        *AOF
-	resp       *RESP
-	pipe       *Pipe
-	writer     *Writer
+	listener net.Listener
+	aof      *AOF
+	pipe     *Pipe
 }
 
 func NewServer() (*Server, error) {
@@ -31,12 +28,9 @@ func NewServer() (*Server, error) {
 	}
 
 	return &Server{
-		listener:   listener,
-		connection: nil,
-		aof:        aof,
-		resp:       nil,
-		pipe:       NewPipe(),
-		writer:     nil,
+		listener: listener,
+		aof:      aof,
+		pipe:     NewPipe(),
 	}, nil
 }
 
@@ -63,18 +57,25 @@ func (server *Server) LoadState() {
 
 func (server *Server) AcceptIncommingRequests() error {
 	fmt.Println("[OK] Server started listening on ", server.listener.Addr().String())
-	connection, err := server.listener.Accept()
-	if err != nil {
-		return err
+
+	for {
+
+		connection, err := server.listener.Accept()
+		if err != nil {
+			return err
+		}
+
+		go func(connection net.Conn) {
+			defer connection.Close()
+			server.ProcessRequest(connection)
+		}(connection)
 	}
-	server.connection = connection
-	return nil
 }
 
-func (server *Server) ProcessRequest() {
+func (server *Server) ProcessRequest(connection net.Conn) {
 	for {
-		server.resp = NewRESP(server.connection)
-		value, err := server.resp.Read()
+		resp := NewRESP(connection)
+		value, err := resp.Read()
 
 		if err != nil {
 			fmt.Println("[ERROR][RESP] ", err)
@@ -90,7 +91,7 @@ func (server *Server) ProcessRequest() {
 			fmt.Println("[ERROR][RESP] Invalid request, expected array length > 0")
 			continue
 		}
-		server.writer = NewWriter(server.connection)
+		writer := NewWriter(connection)
 		command, args, err := value.splitCommandArgs()
 
 		if err != nil {
@@ -103,41 +104,41 @@ func (server *Server) ProcessRequest() {
 			{
 
 				server.pipe.activated = true
-				server.writer.Write(Value{typ: "string", str: ""})
+				writer.Write(Value{typ: "string", str: ""})
 			}
 		case "EXEC":
 			{
 				if !server.pipe.activated {
 					break
 				}
-				server.ExecutePipe()
+				server.ExecutePipe(writer)
 			}
 		default:
 			{
 				if server.pipe.activated {
 					server.pipe.queue = append(server.pipe.queue, value)
-					server.writer.Write(Value{typ: "string", str: "QUEUED"})
+					writer.Write(Value{typ: "string", str: "QUEUED"})
 					break
 				}
 
-				response, err := server.HandleRequest(value, command, args)
+				response, err := server.HandleRequest(writer, value, command, args)
 				if err != nil {
 					fmt.Println("[ERR] ", err)
 					continue
 				}
 
-				server.writer.Write(response)
+				writer.Write(response)
 			}
 		}
 
 	}
 }
 
-func (server *Server) HandleRequest(value Value, command string, args []Value) (Value, error) {
+func (server *Server) HandleRequest(writer *Writer, value Value, command string, args []Value) (Value, error) {
 	handler, ok := Handlers[command]
 
 	if !ok {
-		server.writer.Write(Value{typ: "string", str: ""})
+		writer.Write(Value{typ: "string", str: ""})
 		return Value{}, errors.New(fmt.Sprint("[RESP_ERR] Invalid command : ", command))
 	}
 
@@ -152,7 +153,7 @@ func (server *Server) HandleRequest(value Value, command string, args []Value) (
 	return handler(args), nil
 }
 
-func (server *Server) ExecutePipe() {
+func (server *Server) ExecutePipe(writer *Writer) {
 	results := []Value{}
 	for _, value := range server.pipe.queue {
 		command, args, err := value.splitCommandArgs()
@@ -160,7 +161,7 @@ func (server *Server) ExecutePipe() {
 			fmt.Println("[RESP_ERR] ", err)
 		}
 
-		result, err := server.HandleRequest(value, command, args)
+		result, err := server.HandleRequest(writer, value, command, args)
 		if err != nil {
 			fmt.Println("ERR", err)
 			results = append(results, Value{typ: "error", str: err.Error()})
@@ -170,6 +171,6 @@ func (server *Server) ExecutePipe() {
 	}
 	server.pipe.queue = server.pipe.queue[:0]
 	server.pipe.activated = false
-	server.writer.Write(Value{typ: "array", array: results})
+	writer.Write(Value{typ: "array", array: results})
 
 }
