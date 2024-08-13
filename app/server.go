@@ -32,6 +32,7 @@ func NewServer() (*Server, error) {
 		aof:      aof,
 		pipe:     NewPipe(),
 	}, nil
+
 }
 
 func (server *Server) LoadState() {

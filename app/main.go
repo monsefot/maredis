@@ -9,7 +9,6 @@ func main() {
 	if err != nil {
 		fmt.Println("[ERROR] ", err)
 	}
-
 	server.LoadState()
 	server.AcceptIncommingRequests()
 }
