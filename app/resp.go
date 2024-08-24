@@ -18,7 +18,7 @@ const (
 )
 
 type Value struct {
-	typ   string
+	typ   string // 
 	str   string
 	bulk  string
 	array []Value

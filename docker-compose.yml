@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  node1:
+    build: .
+    ports:
+      - "6380:6379"
+      - "6381:6380"
+    environment:
+      - NODE_ID=master
+      - RAFT_PORT=6380
+      - REDIS_PORT=6379
+    networks:
+      - app-network
+
+  node2:
+    build: .
+    ports:
+      - "6382:6379"
+      - "6383:6380"
+    environment:
+      - NODE_ID=master
+      - RAFT_PORT=6380
+      - REDIS_PORT=6379
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
