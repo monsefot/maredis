@@ -1,3 +1,4 @@
 *.aof
 *.exe
 *.out
+*.bolt
